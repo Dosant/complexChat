@@ -11,7 +11,7 @@ import javax.ws.rs.Path;
 @Path("hello")
 @RequestScoped
 @Controller
-public class HelloController {
+public class HelloController  {
 
     @Inject
     Models models;
@@ -21,4 +21,6 @@ public class HelloController {
         models.put("message", "Today is " + LocalDateTime.now());
         return "hello.xhtml";
     }
+
+
 }
