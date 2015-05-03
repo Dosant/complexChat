@@ -28,6 +28,7 @@ public class PostRequestFromClient {
     String username;
     RequestType requestType;
     int messageID;
+    int userID;
     String messageText;
 
     String dateString;
@@ -38,6 +39,7 @@ public class PostRequestFromClient {
         requestType = RequestType.valueOf(request.get("requestType")[0]);
         messageID = Integer.parseInt(request.get("messageID")[0]);
         messageText = request.get("messageText")[0];
+        userID = Integer.parseInt(request.get("userID")[0]);
 
 
         if(requestType == RequestType.add) {
@@ -61,6 +63,7 @@ public class PostRequestFromClient {
 
         String str = "***POSTReguest" +
                      "\nusername: " + this.username +
+                     "\nuserID: " + this.userID +
                      "\nrequestType: " + this.requestType.name() +
                      "\nmessageID: " + this.messageID +
                      "\nmessageText: " + this.messageText +
@@ -73,6 +76,7 @@ public class PostRequestFromClient {
         obj.put("username",username);
         obj.put("requestType", requestType.name());
         obj.put("messageID",(new Integer(messageID)).toString());
+        obj.put("userID",(new Integer(userID)).toString());
         obj.put("messageText",messageText);
         obj.put("time",dateString);
 
@@ -84,6 +88,9 @@ public class PostRequestFromClient {
 
     public String getUsername(){
         return username;
+    }
+    public String getUserID(){
+        return (new Integer(userID)).toString();
     }
     public String getMessageText(){
         return messageText;

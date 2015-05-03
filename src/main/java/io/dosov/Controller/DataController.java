@@ -16,6 +16,7 @@ public class DataController {
 
     public static final DataController SharedInstance = new DataController();
     int messageID = 0;
+    int userID = 0;
 
 
     LinkedList <PostRequestFromClient> data = new LinkedList<PostRequestFromClient>();
@@ -25,15 +26,17 @@ public class DataController {
 
     DataController(){
 
-        messageID = xmlUtility.loadHistory(data);
-        System.out.println(messageID);
+        messageID = xmlUtility.loadHistory(data)[0];
+        userID = xmlUtility.loadHistory(data)[1];
+        System.out.println("messageID" + messageID);
+        System.out.println("userID" + userID);
     }
 
 
     public synchronized  void addPostRequest(PostRequestFromClient pr){
 
         data.addLast(pr);
-        xmlUtility.saveHistory(data, (new Integer(messageID)).toString());
+        xmlUtility.saveHistory(data, (new Integer(messageID)).toString(), (new Integer(userID)).toString());
 
     }
 
@@ -89,6 +92,11 @@ public class DataController {
     public synchronized int getMessageID(){
         messageID++;
         return messageID;
+    }
+
+    public synchronized int getUserID(){
+        userID++;
+        return userID;
     }
 
 

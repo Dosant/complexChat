@@ -253,7 +253,7 @@ div.line{
     color: #363636;
     background-color: white;
     outline: none;
-    
+    width: 66px;
 }  
 
 #CancelEditBtn {  
@@ -343,4 +343,19 @@ div.line{
     padding-bottom: 0px;
     letter-spacing: 0.5px;
    
+}
+
+.complexContainer {
+    
+    margin-top: 15px;
+    margin-right: 15px;
+    
+    
+    background-image: url("../assets/img/Artboard%201.png");
+    background-size:66px 25px;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    
+    width: 66px;
+    height: 25px;
 }

@@ -9,11 +9,14 @@ import java.util.Map;
 public class GetRequestFromClient {
 
     String username;
+    int userID;
     int actionID;
+
 
     public GetRequestFromClient(Map<String, String[]> request){
 
         username = request.get("username")[0];
+        userID = Integer.parseInt(request.get("userID")[0]);
         actionID = Integer.parseInt(request.get("actionID")[0]);
 
     }
@@ -21,6 +24,7 @@ public class GetRequestFromClient {
     public String toString() {
         String str = "***GETReguest" +
                 "\nusername: " + this.username +
+                "\nuserID: " + this.userID +
                 "\nactionID: " + this.actionID;
         return str;
     }

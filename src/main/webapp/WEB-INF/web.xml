@@ -16,5 +16,16 @@
     </servlet>
 
 
+    <servlet-mapping>
+        <servlet-name>ServletGetUserID</servlet-name>
+        <url-pattern>/ServletGetUserID</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ServletGetUserID</servlet-name>
+        <servlet-class>io.dosov.ServletGetUserID</servlet-class>
+    </servlet>
+
+
 
 </web-app>

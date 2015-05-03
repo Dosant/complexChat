@@ -14,14 +14,16 @@ var settingsMode = false;
 var actionID = 0;
 
 var currentUserName;
+var userID;
 
 
 
 // Struct for adding message to UI
-var newMessage = function (time,username,messageID,messageText){
+var newMessage = function (time,username,userID,messageID,messageText){
     return {
         time: time,
         username: username,
+        userID: userID,
         messageID: messageID,
         messageText: messageText,
         
@@ -67,8 +69,9 @@ var editMessageRequest = function (session_id, message_id, newMessage){
     };
 };
 */
-var postRequest = function(username, requestType, messageID, messageText){
+var postRequest = function(userID,username, requestType, messageID, messageText){
     return {
+        userID: userID,
         username: username,
         requestType:requestType,
         messageID: messageID,
@@ -77,11 +80,12 @@ var postRequest = function(username, requestType, messageID, messageText){
 };
 
 
-/* TODO */
 // Struct for geting message from server
-var newGetRequest = function(actionID, username){
+var newGetRequest = function(actionID,userID, username){
     return{
+        
         actionID: actionID,
+        userID: userID,
         username: username,    
     };
     
@@ -129,15 +133,21 @@ $( document ).ready(function(){
 
 function run() { // start of app. data restore.
     
-    //var data = restore() ;
+    restore(); // restores username from localstorage
     //createAllMessages(data);
     
     //return;
-    currentUserName = "GuestUser";
     
-    setInterval(function(){ // Get Requset
-		//alert(actionID);    
-       var getRequest = newGetRequest(actionID,currentUserName)
+    //alert(actionID + currentUserName);
+    
+    //return;
+    
+    var getRequest = newGetRequest(actionID,userID,currentUserName)
+       getRequestToServer(getRequest); // getNewActions 
+    
+    
+    setInterval(function(){ // Get Requset  
+       var getRequest = newGetRequest(actionID,userID,currentUserName)
        getRequestToServer(getRequest); // getNewActions 
        
     }, 5000)
@@ -157,6 +167,7 @@ function restore() {
 		return;
 	}
     
+    /*
 	var item = localStorage.getItem("data");
     var messageIDopt = localStorage.getItem("messageID");
     if (messageIDopt != null){
@@ -166,23 +177,31 @@ function restore() {
     if (actionIDopt != null){
         actionID = actionIDopt;
     }
+    */
+    var userNameopt = localStorage.getItem("username");
     
-    var userNameopt = localStorage.getItem("userName");
     if (userNameopt != null){
         currentUserName = userNameopt;
         $("#NameForm").val(currentUserName);
     } else {
         
         currentUserName = "GuestUser";
+        $("#NameForm").val(currentUserName);
         
     }
     
+    var userIDopt = localStorage.getItem("userID");
+    if (userIDopt != null){
+        
+        userID = userIDopt;
+        
+    } else {
+        
+        getUserIDfromServer();
+        
+        
+    }
     
-    
-    
-    
-
-	return item && JSON.parse(item);
 }
 
 function store(){
@@ -190,10 +209,12 @@ function store(){
 		alert('localStorage is not accessible');
 		return;
 	}
-
+    /*
 	localStorage.setItem("data", JSON.stringify(messageList));
     localStorage.setItem("actionID", actionID);
-    localStorage.setItem("userName", currentUserName);
+    */
+    localStorage.setItem("username", currentUserName);
+    localStorage.setItem("userID", userID);
     
 }
 
@@ -232,7 +253,7 @@ function postRequestToServer(data){
         data: data,
         success: function(response){
             
-            alert("Successfull post response");
+            //alert("Successfull post response");
             
         },
         error: function(response){
@@ -257,13 +278,33 @@ function getRequestToServer(data){
     data: data,
     success: function(data){
         
-        //alert(data);
+ 
         getActionFromServerWithJSON(data); 
     },
     error: function(data){
         alert("getAction: getError");
     }    
     });
+}
+
+function getUserIDfromServer(){
+    
+    $.ajax({
+    method: "GET",
+    url: "ServletGetUserID",
+    data: null,
+    async: false,
+    timeout:15000,    
+    success: function(data){
+        console.log("UserID: " + userID);
+        userID = parseInt(data);
+        store();
+    },
+    error: function(data){
+        alert("getUserID: getError");
+    }    
+    });
+    
 }
 
 
@@ -289,17 +330,22 @@ function getActionFromServerWithJSON(jsonData){
         var requestType = messageFromServer.requestType;
         
         if(requestType == "add"){ // Add
+        
+            if(globalmessageID < messageFromServer.messageID){
+                //don't want random copies
+                globalmessageID = messageFromServer.messageID;
+
+                var message = newMessage(messageFromServer.time,
+                                        messageFromServer.username,
+                                        messageFromServer.userID, 
+                                        messageFromServer.messageID,
+                                        messageFromServer.messageText);
 
 
-        var message = newMessage(messageFromServer.time,
-                                messageFromServer.username,
-                                messageFromServer.messageID,
-                                messageFromServer.messageText);
 
 
-
-
-        addNewMessage(message);
+                addNewMessage(message);
+            }
 
 
 
@@ -331,10 +377,17 @@ function getActionFromServerWithJSON(jsonData){
             
             if(currentUserName == usernameOld){
                 currentUserName = usernameNew;
+                store(); // save username
             }
             
         }
-    }      
+    }
+    
+    if(newMessages.length > 0){ // changes took place
+        
+        scrollToBottom(chatView,true);
+        
+    }
 }
     
     
@@ -351,7 +404,7 @@ function addNewMessage(message){
     
     messBlock.removeClass("hidden"); 
     
-    if(currentUserName == message.username){ // SameUser 
+    if(userID == message.userID){ // SameUser 
     messBlock.find(".deleteMessage").click(userMessageDelete); 
     messBlock.find(".editMessage").click(userMessageEdit);
     } else { // Can't delete and edit this message
@@ -364,10 +417,10 @@ function addNewMessage(message){
     
     messBlock.appendTo(".media-list");
 
-    messageList.push(message);
-    store();
+    //messageList.push(message);
+    //store();
     
-	scrollToBottom(chatView,false);
+	//scrollToBottom(chatView,false);
 }; 
 
 
@@ -378,7 +431,7 @@ var userMessageSended = function(){ // new message sended by user
     var messageForm = $("#MessageForm");
     var messageText = messageForm.val();
     
-    var prepareNewMessageForSend = postRequest(currentUserName,"add","-1",messageText);
+    var prepareNewMessageForSend = postRequest(userID,currentUserName,"add","-1",messageText);
                                             
     
     if(!isMessageValid(prepareNewMessageForSend.messageText)){
@@ -399,7 +452,7 @@ var userMessageSended = function(){ // new message sended by user
     //store();
     
     
-    scrollToBottom(chatView,true);
+    //scrollToBottom(chatView,true);
     
     messageFormRefresh();
     
@@ -417,8 +470,8 @@ function deleteMessageByID(messageID){
     //alert(messBlock.text());
     messBlock.remove();
     
-    deleteFromList(messageID);
-    store();
+    //deleteFromList(messageID);
+    //store();
     
 }
 
@@ -431,10 +484,10 @@ function editMessageByIDandNewText(messageID, messageText){
     textUI.text(messageText);
     
     
-    scrollToBottom();
+    //scrollToBottom(chatView,true);
     
-    editInList(messageIDtoEdit,messageToEditGlobal.text());
-    store();
+    //editInList(messageIDtoEdit,messageToEditGlobal.text());
+    //store();
 }
 
 var userMessageDelete = function(evt){
@@ -451,9 +504,9 @@ var userMessageDelete = function(evt){
     var messageIDtoDelete = parseInt(messageToDelete.attr("data-messageID"));
     //deleteFromList(messageIDtoDelete);
     //messageToDelete.remove(); //TODO : - Awesome animation ASAP
-    alert('delete ' + messageIDtoDelete);
     
-    var postDeleteRequest = postRequest(currentUserName,
+    
+    var postDeleteRequest = postRequest(userID,currentUserName,
                                                 "delete",                                                    messageIDtoDelete.toString(),
                                                 "");
          
@@ -492,7 +545,7 @@ var editMessageEditMode = function(){ // EDIT MESSAGE
     messageToEditGlobal.text("Editing...");
     var messageIDtoEdit = parseInt(messageToEditGlobal.parents("li.media").attr("data-messageID"));
     
-    var postEditRequest = postRequest(currentUserName,
+    var postEditRequest = postRequest(userID,currentUserName,
                                                 "edit",
                                                 messageIDtoEdit.toString(),
                                                 text);
@@ -603,12 +656,13 @@ function messageFormRefresh(){
     }, 50);
 };
   
-var settingsHeight = "-120px"
+var settingsHeight = 120;
 
 var toggleSettings = function(){
     if (settingsMode){
         settingsMode = false;
-         $(".settings").css("z-index", "-1");   $("#SettingsButtonGlyph").removeClass("coloredGlyph");
+         $(".settings").css("z-index", "-1");
+        $("#SettingsButtonGlyph").removeClass("coloredGlyph");
         $( "#mainRow" ).transition({ y: '0px' });
         $('.settings').transition({ opacity: 0});
         $(".settings").css("box-shadow", "none");
@@ -616,9 +670,11 @@ var toggleSettings = function(){
 
     } else {
         settingsMode = true;
-        $(".settings").css("bottom","120px");
-        $(".settings").css("box-shadow", "0px 2px 3px #888888"); $("#SettingsButtonGlyph").addClass("coloredGlyph");
-        $( "#mainRow" ).transition({ y: settingsHeight,
+        $(".settings").css("bottom",settingsHeight.toString() + "px");
+        $(".settings").css("height",settingsHeight.toString() + "px");
+        $(".settings").css("box-shadow", "0px 2px 3px #888888");
+        $("#SettingsButtonGlyph").addClass("coloredGlyph");
+        $( "#mainRow" ).transition({ y: "-" + settingsHeight.toString() + "px",
                                    });
         
         $('.settings').transition({ opacity: 100 }, function(){
@@ -636,22 +692,14 @@ var toggleSettings = function(){
 
 var applySettings = function(){
     var newName = $("#NameForm").val();
-    
-    
     usernameChanged(currentUserName, newName);
-    
-    store();
-    
     toggleSettings();
 }
 
 function usernameChanged(usernameOld, usernameNew){
-    
-    var usernameChangedRequest = postRequest(usernameOld,"username",
+    var usernameChangedRequest = postRequest(userID,usernameOld,"username",
                                              "-1",usernameNew);
-    
     postRequestToServer(usernameChangedRequest);
-    
 }
 
 var isMessageValid = function(messageText){

@@ -25,7 +25,7 @@ import org.jdom2.*;
  */
 public class XmlUtility {
 
-    public synchronized  void saveHistory(LinkedList<PostRequestFromClient> posts, String lastMessageID){
+    public synchronized  void saveHistory(LinkedList<PostRequestFromClient> posts, String lastMessageID, String lastUserID){
 
 
         try {
@@ -43,6 +43,10 @@ public class XmlUtility {
             Element lastMessageIDElement = doc.createElement("lastMessageID");
             lastMessageIDElement.appendChild(doc.createTextNode(lastMessageID));
             rootElement.appendChild(lastMessageIDElement);
+
+            Element lastUserIDElement = doc.createElement("lastUserID");
+            lastUserIDElement.appendChild(doc.createTextNode(lastUserID));
+            rootElement.appendChild(lastUserIDElement);
 
 
             Element postsElement = doc.createElement("posts");
@@ -78,6 +82,10 @@ public class XmlUtility {
                 Element messageText = doc.createElement("messageText");
                 messageText.appendChild(doc.createTextNode(request.getMessageText()));
                 post.appendChild(messageText);
+
+                Element userID = doc.createElement("userID");
+                userID.appendChild(doc.createTextNode(request.getUserID()));
+                post.appendChild(userID);
 
 
                 postsElement.appendChild(post);
@@ -115,7 +123,7 @@ public class XmlUtility {
     }
 
 
-    public synchronized int loadHistory(LinkedList<PostRequestFromClient> posts) {
+    public synchronized int [] loadHistory(LinkedList<PostRequestFromClient> posts) {
         try {
 
 
@@ -133,6 +141,9 @@ public class XmlUtility {
             String lastMessageIDstring = rootElement.getChild("lastMessageID").getText();
             int lastMessageID = Integer.parseInt(lastMessageIDstring);
 
+            String lastUserIDstring = rootElement.getChild("lastUserID").getText();
+            int lastUserID = Integer.parseInt(lastUserIDstring);
+
 
             org.jdom2.Element postsElement = rootElement.getChild("posts");
             List<org.jdom2.Element> postsList = postsElement.getChildren();
@@ -146,6 +157,7 @@ public class XmlUtility {
                 requestMap.put("messageID",new String[]{postElement.getChildText("messageID")});
                 requestMap.put("messageText",new String[]{postElement.getChildText("messageText")});
                 requestMap.put("dateString",new String[]{postElement.getChildText("dateString")});
+                requestMap.put("userID",new String[]{postElement.getChildText("userID")});
 
 
                 PostRequestFromClient request = new PostRequestFromClient(requestMap);
@@ -157,7 +169,7 @@ public class XmlUtility {
             }
 
 
-            return lastMessageID;
+            return new int[] {lastMessageID,lastUserID};
 
         } catch (JDOMException e) {
             e.printStackTrace();
@@ -165,7 +177,9 @@ public class XmlUtility {
             e.printStackTrace();
         }
 
-        return 0;
+
+        return new int [] {0,0};
+
 
     }
 
