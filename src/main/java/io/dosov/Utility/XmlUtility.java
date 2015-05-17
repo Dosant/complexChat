@@ -1,35 +1,32 @@
 package io.dosov.Utility;
 
-import io.dosov.Model.PostRequestFromClient;
+import io.dosov.Model.RequestFromClient;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
-import org.jdom2.input.SAXBuilder;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
-
-import java.io.*;
-
-import org.jdom2.*;
 
 /**
  * Created by antondosov on 01.05.15.
  */
 public class XmlUtility {
 
-    public synchronized  void saveHistory(LinkedList<PostRequestFromClient> posts, String lastMessageID, String lastUserID){
+    public synchronized void saveHistory(LinkedList<RequestFromClient> posts, String lastMessageID, String lastUserID, String lastActionID) {
 
-
+        PrintWriter writer = null;
         try {
-
+            writer = new PrintWriter("history.xml");
             DocumentBuilderFactory dbFactory =
                     DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder =
@@ -48,17 +45,17 @@ public class XmlUtility {
             lastUserIDElement.appendChild(doc.createTextNode(lastUserID));
             rootElement.appendChild(lastUserIDElement);
 
+            Element lastActionIDElement = doc.createElement("lastActionID");
+            lastActionIDElement.appendChild(doc.createTextNode(lastActionID));
+            rootElement.appendChild(lastActionIDElement);
+
 
             Element postsElement = doc.createElement("posts");
             rootElement.appendChild(postsElement);
 
+            ListIterator<RequestFromClient> it = posts.listIterator();
 
-
-
-            ListIterator<PostRequestFromClient> it = posts.listIterator();
-
-            while(it.hasNext()){
-                PostRequestFromClient request = it.next();
+            for (RequestFromClient request : posts) {
 
                 Element post = doc.createElement("post");
 
@@ -87,21 +84,19 @@ public class XmlUtility {
                 userID.appendChild(doc.createTextNode(request.getUserID()));
                 post.appendChild(userID);
 
+                Element actionID = doc.createElement("actionID");
+                actionID.appendChild(doc.createTextNode((new Integer(request.getActionID())).toString()));
+                post.appendChild(actionID);
 
                 postsElement.appendChild(post);
-
-
             }
-
-
-
             // write the content into xml file
             TransformerFactory transformerFactory =
                     TransformerFactory.newInstance();
             Transformer transformer =
                     transformerFactory.newTransformer();
             DOMSource source = new DOMSource(doc);
-            PrintWriter writer = new PrintWriter("history.xml");
+
 
             StreamResult result =
                     new StreamResult(writer);
@@ -109,13 +104,14 @@ public class XmlUtility {
 
 
             transformer.transform(source, result);
-            // Output to console for testing
-            StreamResult consoleResult =
-                    new StreamResult(System.out);
-            transformer.transform(source, consoleResult);
+
 
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
         }
 
 
@@ -123,7 +119,8 @@ public class XmlUtility {
     }
 
 
-    public synchronized int [] loadHistory(LinkedList<PostRequestFromClient> posts) {
+    public synchronized int[] loadHistory(LinkedList<RequestFromClient> posts) {
+
         try {
 
 
@@ -144,6 +141,9 @@ public class XmlUtility {
             String lastUserIDstring = rootElement.getChild("lastUserID").getText();
             int lastUserID = Integer.parseInt(lastUserIDstring);
 
+            String lastActionIDstring = rootElement.getChild("lastActionID").getText();
+            int lastActionID = Integer.parseInt(lastActionIDstring);
+
 
             org.jdom2.Element postsElement = rootElement.getChild("posts");
             List<org.jdom2.Element> postsList = postsElement.getChildren();
@@ -158,9 +158,10 @@ public class XmlUtility {
                 requestMap.put("messageText",new String[]{postElement.getChildText("messageText")});
                 requestMap.put("dateString",new String[]{postElement.getChildText("dateString")});
                 requestMap.put("userID",new String[]{postElement.getChildText("userID")});
+                requestMap.put("actionID", new String[]{postElement.getChildText("actionID")});
 
 
-                PostRequestFromClient request = new PostRequestFromClient(requestMap);
+                RequestFromClient request = new RequestFromClient(requestMap);
 
                 posts.addLast(request);
 
@@ -169,16 +170,18 @@ public class XmlUtility {
             }
 
 
-            return new int[] {lastMessageID,lastUserID};
+            return new int[]{lastMessageID, lastUserID, lastActionID};
 
         } catch (JDOMException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+
         }
 
 
-        return new int [] {0,0};
+        return new int[]{0, 0, 0};
 
 
     }

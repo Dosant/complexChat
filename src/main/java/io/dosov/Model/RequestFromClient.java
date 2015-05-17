@@ -1,7 +1,7 @@
 package io.dosov.Model;
 
 
-import io.dosov.Controller.DataController;
+import io.dosov.API.ServerApi;
 import org.json.simple.JSONObject;
 
 import java.text.SimpleDateFormat;
@@ -11,29 +11,17 @@ import java.util.Map;
 /**
  * Created by antondosov on 01.05.15.
  */
-public class PostRequestFromClient {
-
-    public enum RequestType{
-        add(0),edit(1),delete(2),username(3);
-
-        private int value;
-
-        private RequestType(int value) {
-            this.value = value;
-        }
-
-    }
-
+public class RequestFromClient {
 
     String username;
     RequestType requestType;
     int messageID;
     int userID;
+    int actionID;
     String messageText;
-
     String dateString;
 
-    public PostRequestFromClient(Map<String, String[]> request){
+    public RequestFromClient(Map<String, String[]> request) {
 
         username = request.get("username")[0];
         requestType = RequestType.valueOf(request.get("requestType")[0]);
@@ -44,8 +32,14 @@ public class PostRequestFromClient {
 
         if(requestType == RequestType.add) {
             if (messageID == -1) {
-                messageID = DataController.SharedInstance.getMessageID();
+                messageID = ServerApi.SharedInstance.getMessageID();
             }
+        }
+
+        if (request.get("actionID") == null) {
+            actionID = ServerApi.SharedInstance.getActionID();
+        } else {
+            actionID = Integer.parseInt(request.get("actionID")[0]);
         }
 
         dateString = request.getOrDefault("dateString", new String[]{nowDateString()})[0];
@@ -62,6 +56,7 @@ public class PostRequestFromClient {
     public String toString() {
 
         String str = "***POSTReguest" +
+                "\nactionID: " + this.actionID +
                      "\nusername: " + this.username +
                      "\nuserID: " + this.userID +
                      "\nrequestType: " + this.requestType.name() +
@@ -74,6 +69,7 @@ public class PostRequestFromClient {
     public JSONObject getPostJSON(){
         JSONObject obj = new JSONObject();
         obj.put("username",username);
+        obj.put("actionID", (new Integer(actionID)).toString());
         obj.put("requestType", requestType.name());
         obj.put("messageID",(new Integer(messageID)).toString());
         obj.put("userID",(new Integer(userID)).toString());
@@ -83,26 +79,55 @@ public class PostRequestFromClient {
         return  obj;
     }
 
-
-
-
     public String getUsername(){
         return username;
     }
+
     public String getUserID(){
         return (new Integer(userID)).toString();
     }
+
     public String getMessageText(){
         return messageText;
     }
+
     public String getDateString(){
         return dateString;
     }
+
     public String getRequestType(){
         return requestType.name();
     }
+
+    public RequestType getRequestTypeEnum() {
+        return requestType;
+    }
+
     public String getMessageID(){
         return (new Integer(messageID)).toString();
+    }
+
+    public int getMessageIDint() {
+        return messageID;
+    }
+
+    public int getUserIDint() {
+        return userID;
+    }
+
+    public int getActionID() {
+        return actionID;
+    }
+
+    public enum RequestType {
+        add(0), edit(1), delete(2), username(3);
+
+        private int value;
+
+        RequestType(int value) {
+            this.value = value;
+        }
+
     }
 
 }

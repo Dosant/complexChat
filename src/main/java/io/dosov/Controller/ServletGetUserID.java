@@ -1,6 +1,6 @@
-package io.dosov;
+package io.dosov.Controller;
 
-import io.dosov.Controller.DataController;
+import io.dosov.API.ServerApi;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -22,7 +22,7 @@ public class ServletGetUserID extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         PrintWriter out = response.getWriter();
-        out.print(DataController.SharedInstance.getUserID());
+        out.print(ServerApi.SharedInstance.getUserID());
 
     }
 }

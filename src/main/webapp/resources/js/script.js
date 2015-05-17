@@ -88,8 +88,8 @@ var newGetRequest = function(actionID,userID, username){
         userID: userID,
         username: username,    
     };
-    
-}
+
+};
 
 // ----------- Main Function
 
@@ -141,24 +141,22 @@ function run() { // start of app. data restore.
     //alert(actionID + currentUserName);
     
     //return;
-    
-    var getRequest = newGetRequest(actionID,userID,currentUserName)
-       getRequestToServer(getRequest); // getNewActions 
-    
-    
-    setInterval(function(){ // Get Requset  
-       var getRequest = newGetRequest(actionID,userID,currentUserName)
-       getRequestToServer(getRequest); // getNewActions 
-       
-    }, 5000)
+
+    ajaxGetStart();
 }
+
+var ajaxGetStart = function () {
+    var getRequest = newGetRequest(actionID, userID, currentUserName);
+    getRequestToServer(getRequest);
+
+};
 
 
 function createAllMessages(data) {
     if (data != null) {
 	for(var i = 0; i < data.length; i++)
 		addMessageFromData(data[i]);
-    };    
+    }
 }
 
 function restore() {
@@ -228,7 +226,7 @@ function deleteFromList(messageID){
         if (messageList[i].messageID == messageID){
             messageList.splice(i,1);
             store();
-            continue;
+
         }
     }
 
@@ -239,7 +237,7 @@ function editInList(messageID,newText){
         if (messageList[i].messageID == messageID){
             messageList[i].messageText = newText;
             store();
-            continue;
+
         }
     }
 
@@ -247,28 +245,24 @@ function editInList(messageID,newText){
 
 
 function postRequestToServer(data){
+
     $.ajax({
         method: "POST",
         url: "ServletPostRequests",
         data: data,
         success: function(response){
-            
-            //alert("Successfull post response");
+
+            console.log("PostSuccess: " + data);
             
         },
         error: function(response){
-            
-            alert("Error in post response");
+
+            console.log("PostError: " + data);
             
         }
     });
-};
-
-
-
-
-
-function getRequestToServer(data){ 
+}
+function getRequestToServer(data) {
     
     //alert(JSON.stringify(message1));
     
@@ -276,14 +270,24 @@ function getRequestToServer(data){
     method: "GET",
     url: "ServletPostRequests",
     data: data,
-    success: function(data){
-        
- 
-        getActionFromServerWithJSON(data); 
+        timeout: 60000,
+        success: function (data, textStatus, jqXHR) {
+            console.log(jqXHR.status);
+            console.log("GetSuccess: " + data);
+            if (jqXHR.status == 304) {
+                // no new actions
+                // timeout
+            } else {
+        getActionFromServerWithJSON(data);
+            }
+
+            ajaxGetStart();
     },
-    error: function(data){
-        alert("getAction: getError");
-    }    
+
+        error: function(data){
+            console.log("GetError: " + data.status);
+    }
+
     });
 }
 
@@ -296,12 +300,12 @@ function getUserIDfromServer(){
     async: false,
     timeout:15000,    
     success: function(data){
-        console.log("UserID: " + userID);
+        console.log("UserID Success: " + userID);
         userID = parseInt(data);
         store();
     },
     error: function(data){
-        alert("getUserID: getError");
+        console.log("GetUserID: " + data.status);
     }    
     });
     
@@ -310,19 +314,22 @@ function getUserIDfromServer(){
 
 
 function getActionFromServerWithJSON(jsonData){
-    if (jsonData.length == 0)
+
+    if (jsonData.length == 0) {
         return;
-
-
-
+    }
+        
+    
+    
     var dataFromServer = $.parseJSON(jsonData);
-    var newMessages = dataFromServer["posts"];
 
+    var newMessages = dataFromServer["posts"];
 
 
     for( i = 0; i < newMessages.length; i++){
 
         var messageFromServer = newMessages[i];
+
 
         newActionID = parseInt(messageFromServer.actionID);
         actionID = Math.max(actionID, newActionID);
@@ -330,22 +337,18 @@ function getActionFromServerWithJSON(jsonData){
         var requestType = messageFromServer.requestType;
         
         if(requestType == "add"){ // Add
-        
-            if(globalmessageID < messageFromServer.messageID){
-                //don't want random copies
-                globalmessageID = messageFromServer.messageID;
-
-                var message = newMessage(messageFromServer.time,
-                                        messageFromServer.username,
-                                        messageFromServer.userID, 
-                                        messageFromServer.messageID,
-                                        messageFromServer.messageText);
 
 
+            globalmessageID = messageFromServer.messageID;
 
+            var message = newMessage(messageFromServer.time,
+                messageFromServer.username,
+                messageFromServer.userID,
+                messageFromServer.messageID,
+                messageFromServer.messageText);
 
-                addNewMessage(message);
-            }
+            addNewMessage(message);
+            
 
 
 
@@ -395,7 +398,7 @@ function getActionFromServerWithJSON(jsonData){
 // UI
 function addNewMessage(message){
 
-    var messBlock = $(".media-list > .media:first").clone();
+    var messBlock = $(".media-list > .media:first").clone(true, true);
     messBlock.find(".message").text(message.messageText);
     messBlock.find(".NickName").text(message.username);
     messBlock.find(".Time").text(message.time);
@@ -421,11 +424,7 @@ function addNewMessage(message){
     //store();
     
 	//scrollToBottom(chatView,false);
-}; 
-
-
-
-
+}
 var userMessageSended = function(){ // new message sended by user
     
     var messageForm = $("#MessageForm");
@@ -555,13 +554,13 @@ var editMessageEditMode = function(){ // EDIT MESSAGE
     
     
     cancelEditMode();
-}
+};
 
 var cancelEditMode = function(){
     if (!editMode)
         return;
     UIToggleEditMode();
-}
+};
 
 
 function UIToggleEditMode(){
@@ -623,7 +622,7 @@ var registerKeyPress = function(editMode){
         
         }   
     });
-}
+};
 
 var registerForNameCheck = function(){
     if(settingsMode){
@@ -645,7 +644,7 @@ var registerForNameCheck = function(){
        $(document).off("keyup"); 
         
     }
-}
+};
 
 
 function messageFormRefresh(){
@@ -654,8 +653,7 @@ function messageFormRefresh(){
     setTimeout(function(){
         $("#MessageForm").focus();
     }, 50);
-};
-  
+}
 var settingsHeight = 120;
 
 var toggleSettings = function(){
@@ -694,7 +692,7 @@ var applySettings = function(){
     var newName = $("#NameForm").val();
     usernameChanged(currentUserName, newName);
     toggleSettings();
-}
+};
 
 function usernameChanged(usernameOld, usernameNew){
     var usernameChangedRequest = postRequest(userID,usernameOld,"username",
@@ -715,7 +713,7 @@ var isMessageValid = function(messageText){
         }
     }
     return false;
-}
+};
 
 
 
