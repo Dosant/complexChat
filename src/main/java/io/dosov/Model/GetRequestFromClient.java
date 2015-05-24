@@ -1,6 +1,5 @@
 package io.dosov.Model;
 
-import javax.ws.rs.GET;
 import java.util.Map;
 
 /**
@@ -18,6 +17,14 @@ public class GetRequestFromClient {
         username = request.get("username")[0];
         userID = Integer.parseInt(request.get("userID")[0]);
         actionID = Integer.parseInt(request.get("actionID")[0]);
+
+    }
+
+    public GetRequestFromClient(String usernameString, String userIDString, String actionIDString) {
+
+        username = usernameString;
+        userID = Integer.parseInt(userIDString);
+        actionID = Integer.parseInt(actionIDString);
 
     }
 

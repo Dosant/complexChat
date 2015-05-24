@@ -22,7 +22,9 @@ public class ServletGetUserID extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         PrintWriter out = response.getWriter();
-        out.print(ServerApi.SharedInstance.getUserID());
+        int userID = ServerApi.SharedInstance.getUserID();
+        System.out.print(userID);
+        out.print(userID);
 
     }
 }

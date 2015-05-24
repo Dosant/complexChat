@@ -32,11 +32,10 @@ public class ServletPostRequests extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         logger.info("doPost");
-        //PrintWriter out = response.getWriter();
         Map<String,String[]> requestMap = request.getParameterMap();
         RequestFromClient postRequestFromClient = new RequestFromClient(requestMap);
 
-        logger.info(postRequestFromClient);
+        logger.info("post" + postRequestFromClient);
 
         ServerApi.SharedInstance.addPostRequest(postRequestFromClient);
 
@@ -76,7 +75,7 @@ public class ServletPostRequests extends HttpServlet {
 
 
                 PrintWriter out = res.getWriter();
-                out.print("{}");
+                out.print((new JSONObject()).toJSONString());
 
                 ctx.complete();
 
@@ -118,10 +117,13 @@ public class ServletPostRequests extends HttpServlet {
 
         response.setCharacterEncoding("UTF-8");
         Map<String, String[]> requestMap = request.getParameterMap();
-        GetRequestFromClient getRequestFromClient = new GetRequestFromClient(requestMap);
+        GetRequestFromClient getRequestFromClient;
+
+        getRequestFromClient = new GetRequestFromClient(requestMap);
+
 
         logger.info("Proccess");
-        logger.info(getRequestFromClient);
+        logger.info(getRequestFromClient.toString());
 
         if (ServerApi.SharedInstance.isNewActions(getRequestFromClient.getActionID())) {
 
