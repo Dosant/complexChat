@@ -2,6 +2,8 @@ package io.dosov.Controller;
 
 import io.dosov.API.ServerApi;
 
+import org.apache.log4j.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -15,6 +17,9 @@ import java.io.PrintWriter;
  */
 @WebServlet(name = "ServletGetUserID")
 public class ServletGetUserID extends HttpServlet {
+
+    private static Logger logger = Logger.getLogger(ServletGetUserID.class.getName());
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     }
@@ -23,7 +28,7 @@ public class ServletGetUserID extends HttpServlet {
 
         PrintWriter out = response.getWriter();
         int userID = ServerApi.SharedInstance.getUserID();
-        System.out.print(userID);
+        logger.info("give new user ID " + userID);
         out.print(userID);
 
     }
