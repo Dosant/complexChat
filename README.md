@@ -4,7 +4,7 @@
 * Java Servlets
 * MySql
 
-##### As initiative I've create simple native iOS client for the chat.
+##### As initiative I've created simple native iOS client for the chat.
 
 ![ComplexChat](http://i.cubeupload.com/UYkMuM.jpg)
 
